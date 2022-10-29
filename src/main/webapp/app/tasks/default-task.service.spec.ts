@@ -50,6 +50,21 @@ describe('DefaultTaskService', () => {
     req.flush({});
   });
 
+  it('should get all filtered tasks', () => {
+    //given
+    const filter: Record<string, any> = { prop1: 'value1', prop2: 'value2' };
+
+    // when
+    taskService.getFiltered(filter).subscribe();
+
+    // then
+    const req = httpTestingController.expectOne(request => request.url === 'http://backend.tld/tasks?prop1=value1&prop2=value2');
+    expect(req.request.method).toEqual('GET');
+
+    // finally
+    req.flush({});
+  });
+
   it('should delete task', () => {
     // when
     taskService.delete('id123').subscribe();

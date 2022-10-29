@@ -21,7 +21,7 @@ describe('LocalTaskService', () => {
     localStorageGetSpy = spyOn(localStorage, 'getItem');
     localStorageSetSpy = spyOn(localStorage, 'setItem');
     localStorageGetSpy.and.callFake(() => `[${mockTask}]`);
-    localStorageSetSpy.and.callFake(() => {});
+    localStorageSetSpy.and.callFake(() => { });
   });
 
   it('should be created', () => {
@@ -37,6 +37,43 @@ describe('LocalTaskService', () => {
     taskList$.subscribe(taskList => {
       expect(taskList.length).toBe(1);
       expect(taskList[0].name).toEqual(name);
+    });
+  });
+
+  describe('on getFiltered', () => {
+    let filter: Record<string, any>;
+    it('should return empty array if taskName not found', () => {
+      //given
+      filter = { taskName: 'taskValue' };
+      // when
+      const taskList$: Observable<Task[]> = taskService.getFiltered(filter);
+      // then
+      taskList$.subscribe((taskList) => { expect(taskList).toEqual([]); });
+    });
+
+    it('should return array with founded taskNames', () => {
+      //given
+      filter = { taskName: 'Doing' };
+      // when
+      const taskList$: Observable<Task[]> = taskService.getFiltered(filter);
+      // then
+      taskList$.subscribe((taskList) => { expect(taskList.length).toEqual(1); });
+    });
+
+    it('should return entire array if filter empty', () => {
+      //given
+      filter = { taskName: '' };
+      // when
+      const taskList$: Observable<Task[]> = taskService.getFiltered(filter);
+      // then
+      taskList$.subscribe((taskList) => { expect(taskList.length).toEqual(1); });
+    });
+
+    it('should return entire array if filter not setted', () => {
+      // when
+      const taskList$: Observable<Task[]> = taskService.getFiltered(null as any);
+      // then
+      taskList$.subscribe((taskList) => { expect(taskList.length).toEqual(1); });
     });
   });
 

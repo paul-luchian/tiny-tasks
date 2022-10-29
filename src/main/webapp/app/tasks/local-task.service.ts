@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Observable, of } from 'rxjs';
 import { v4 as uuid } from 'uuid';
+import { FilterUtilities } from '../shared/components/filter/utilities/filter.functions';
 
 import { Task } from './task';
 import { TaskService } from './task.service';
@@ -14,9 +15,17 @@ export class LocalTaskService implements TaskService {
     return of(this.readTasks());
   }
 
+  getFiltered(filter: Record<string, any>): Observable<Task[]> {
+    const filterString: string = FilterUtilities.buildFilterString(filter);
+    const filterObj: Record<string, any> = FilterUtilities.buildFilterObj(filterString);
+    return of(
+      this.readTasks().filter((el) => el.name.toLowerCase().includes((filterObj.taskName || '').toLowerCase()))
+    );
+  }
+
   create(name: string): Observable<Task> {
     const tasks = this.readTasks();
-    const task = {id: uuid(), name};
+    const task = { id: uuid(), name };
     tasks.push(task);
     this.writeTasks(tasks);
     return of(task);

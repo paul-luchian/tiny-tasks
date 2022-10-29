@@ -6,16 +6,20 @@ import { MatInputModule } from '@angular/material/input';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { BrowserModule } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { RouterModule } from '@angular/router';
 
 import { environment } from '../environments/environment';
 import { AppComponent } from './app.component';
 import { BASE_URL } from './app.tokens';
+import { FilterModule } from './shared/components/filter/filter.module';
 import { DefaultTaskService } from './tasks/default-task.service';
 import { LocalTaskService } from './tasks/local-task.service';
 import { TasksModule } from './tasks/tasks.module';
 
 @NgModule({
-  declarations: [AppComponent],
+  declarations: [
+    AppComponent
+  ],
   imports: [
     BrowserModule,
     BrowserAnimationsModule,
@@ -24,7 +28,9 @@ import { TasksModule } from './tasks/tasks.module';
     MatInputModule,
     MatIconModule,
     MatToolbarModule,
-    TasksModule
+    TasksModule,
+    FilterModule,
+    RouterModule.forRoot([]),
   ],
   providers: [
     { provide: BASE_URL, useValue: 'http://localhost:8080' },
@@ -32,4 +38,4 @@ import { TasksModule } from './tasks/tasks.module';
   ],
   bootstrap: [AppComponent]
 })
-export class AppModule {}
+export class AppModule { }

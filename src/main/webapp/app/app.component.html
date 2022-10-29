@@ -9,6 +9,7 @@
   </mat-toolbar>
   <section class="content">
     <div class="wrapper">
+      <tiny-filter class="u-margin-top" (formChanged)="setFilterForm($event)"></tiny-filter>
       <tiny-task-list [tasks]="tasks$ | async" (deleted)="deleted()"></tiny-task-list>
     </div>
   </section>
