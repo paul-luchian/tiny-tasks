@@ -1,7 +1,7 @@
 @mixin spacesGenerator($name, $values) {
     @each $type, $value in $values {
-        @if ($type == 'main') {
-            $type: '';
+        @if ($type == "main") {
+            $type: "";
         }
         .u-#{$type}#{$name} {
             #{$name}: $value;
@@ -15,9 +15,15 @@
 }
 
 @mixin generalGenerator($name, $values) {
-    @each $type in $values {
-        .u-#{$name}-#{$type} {
-            #{$name}: #{$type};
+    @each $type, $val in $values {
+        @if ($val) {
+            .u-#{$name}-#{$type} {
+                #{$name}: #{$val};
+            }
+        } @else {
+            .u-#{$name}-#{$type} {
+                #{$name}: #{$type};
+            }
         }
     }
 }

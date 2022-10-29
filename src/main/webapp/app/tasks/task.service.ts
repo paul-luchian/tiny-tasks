@@ -1,4 +1,5 @@
 import { Observable } from 'rxjs';
+import { ISort } from '../shared/models/sort.model';
 
 import { Task } from './task';
 
@@ -15,11 +16,11 @@ export interface TaskService {
   getAll(): Observable<Task[]>;
 
   /**
-   * Returns the list of all tasks.
+   * Returns the list of filtered all tasks.
    *
    * @returns an `Observable` holding the list of tasks
    */
-  getFiltered(filter: Record<string, string>): Observable<Task[]>;
+  getFiltered(filter: Record<string, string> | null, sort: ISort | null): Observable<Task[]>;
 
   /**
    * Adds a new task to the list of tasks.
@@ -36,4 +37,12 @@ export interface TaskService {
    * @returns an empty `Observable`
    */
   delete(id: string): Observable<void>;
+
+  /**
+   * Saves edited data of a task.
+   *
+   * @param taskData the edited task
+   * @returns an empty `Observable`
+   */
+  saveTaskData(taskData: Task): Observable<void>;
 }

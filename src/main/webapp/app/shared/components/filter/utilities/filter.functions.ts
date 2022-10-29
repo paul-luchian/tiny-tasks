@@ -1,7 +1,7 @@
 import { Utils } from "../../../functions/utils";
 
-const buildFilterString: (filter: Record<string, any>) => string = (
-    filter: Record<string, any>
+const buildFilterString: (filter: Record<string, any> | null) => string = (
+    filter: Record<string, any> | null
 ): string => {
     return Object.entries(filter || {})
         .reduce((total, [prop, val]) => {

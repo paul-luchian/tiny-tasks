@@ -96,7 +96,7 @@ describe('FilterComponent', () => {
     });
 
     it('should reset the queryParams', () => {
-      expect(navigateSpy).toHaveBeenCalledWith([], { relativeTo: jasmine.any(Object), queryParams: {} });
+      expect(navigateSpy).toHaveBeenCalledWith([], { relativeTo: jasmine.any(Object), queryParams: { taskName: null } });
     });
   });
 

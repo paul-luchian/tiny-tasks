@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, EventEmitter, OnDestroy, OnInit, Output } from '@angular/core';
 import { FormBuilder, FormGroup } from '@angular/forms';
-import { ActivatedRoute, Params, Router } from '@angular/router';
+import { ActivatedRoute, NavigationExtras, Params, Router } from '@angular/router';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 
@@ -46,7 +46,7 @@ export class FilterComponent implements OnInit, OnDestroy {
 
   resetFilter(): void {
     this.form!.reset();
-    this.router.navigate([], { relativeTo: this.activatedRoute, queryParams: {} });
+    this.setQueryParams(this.form as FormGroup, this.router, this.activatedRoute);
   }
 
   private buildForm(formBuilder: FormBuilder): FormGroup {
@@ -56,10 +56,14 @@ export class FilterComponent implements OnInit, OnDestroy {
   }
 
   private setQueryParams(form: FormGroup, router: Router, activatedRoute: ActivatedRoute): void {
-    const queryParams: Record<string, any> = Object.entries(form.value)
-      .filter(([, val]) => val !== '')
-      .reduce((total, [prop, val]) => ({ ...total, [prop]: val }), {});
-    router.navigate([], { relativeTo: activatedRoute, queryParams });
+    const navigationExtras: NavigationExtras = {
+      relativeTo: activatedRoute,
+      queryParams: {
+        ...this.activatedRoute.snapshot.queryParams,
+        ...this.getQueryParamsFromForm(form),
+      },
+    };
+    router.navigate([], navigationExtras);
   }
 
   private setFromQueryParams(queryParams: Params, form: FormGroup): void {
@@ -67,5 +71,11 @@ export class FilterComponent implements OnInit, OnDestroy {
       .forEach(([key, val]) => {
         form.get(key)?.setValue(val, { emitEvent: false });
       });
+  }
+
+  private getQueryParamsFromForm(form: FormGroup): Record<string, any> {
+    return Object.entries(form.value)
+      .filter(([, val]) => val !== '')
+      .reduce((total, [prop, val]) => ({ ...total, [prop]: val }), {});
   }
 }
