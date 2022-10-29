@@ -1,71 +1,134 @@
+import { ChangeDetectorRef, NO_ERRORS_SCHEMA } from '@angular/core';
 import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
-import { of } from 'rxjs';
-
+import { FormControl, FormGroup } from '@angular/forms';
+import { Observable, of } from 'rxjs';
 import { AppComponent } from './app.component';
 import { TaskService } from './tasks/task.service';
 
 describe('AppComponent', () => {
   let fixture: ComponentFixture<AppComponent>;
   let component: AppComponent;
-  let taskService: jasmine.SpyObj<TaskService>;
+  let mockData: {
+    taskService: jasmine.SpyObj<TaskService>,
+    filterForm: FormGroup,
+  };
 
   beforeEach(waitForAsync(() => {
-    taskService = jasmine.createSpyObj('TaskService', ['getAll']);
+    mockData = {
+      taskService: jasmine.createSpyObj('TaskService', ['getAll', 'getFiltered']),
+      filterForm: new FormGroup({ filterField: new FormControl('') }),
+    };
+    mockData.taskService.getFiltered.and.returnValue(of([]));
+
     TestBed.configureTestingModule({
       declarations: [AppComponent],
-      providers: [{
-        provide: 'TaskService',
-        useValue: taskService
-      }]
-    }).overrideTemplate(AppComponent, '')
-      .compileComponents();
+      providers: [
+        ChangeDetectorRef,
+        { provide: 'TaskService', useValue: mockData.taskService },
+      ],
+      schemas: [NO_ERRORS_SCHEMA]
+    }).compileComponents();
   }));
 
   beforeEach(() => {
     fixture = TestBed.createComponent(AppComponent);
     component = fixture.componentInstance;
-    fixture.detectChanges();
   });
 
   it('should create', waitForAsync(() => {
     expect(component).toBeTruthy();
   }));
 
-  it('should init the tasks', () => {
-    // given
-    const tasks$ = of([]);
-    taskService.getAll.and.returnValue(tasks$);
+  describe('on destroy', () => {
+    let nextSpy: jasmine.Spy;
+    let completeSpy: jasmine.Spy;
 
-    // when
-    component.ngOnInit();
+    beforeEach(() => {
+      nextSpy = spyOn((component as any).unsubscribe$, 'next');
+      completeSpy = spyOn((component as any).unsubscribe$, 'complete');
+      component.ngOnDestroy();
+    });
 
-    // then
-    expect(component.tasks$).toEqual(tasks$);
+    it('should call next on unsbuscribe$', () => {
+      expect(nextSpy).toHaveBeenCalled();
+    });
+
+    it('should complete unsbuscribe$', () => {
+      expect(completeSpy).toHaveBeenCalled();
+    });
   });
 
-  it('should reload the tasks after task creation', () => {
-    // given
-    const tasks$ = of([]);
-    taskService.getAll.and.returnValue(tasks$);
+  describe('on setFilterForm', () => {
+    const form: FormGroup = new FormGroup({
+      filterName: new FormControl('filterValue'),
+    });
+    let detectChangesSpy: jasmine.Spy;
+    let updateValueAndValiditySpy: jasmine.Spy;
+    beforeEach(() => {
+      updateValueAndValiditySpy = spyOn(form, 'updateValueAndValidity').and.callThrough();
+      detectChangesSpy = spyOn((component as any).changeDetectorRef, 'detectChanges');
+      component.setFilterForm(form);
+    });
 
-    // when
-    component.created();
+    it('should set the filterForm to the received form', () => {
+      expect((component as any).filterForm.value).toEqual(form.value);
+    });
 
-    // then
-    expect(component.tasks$).toEqual(tasks$);
-    expect(taskService.getAll).toHaveBeenCalled();
+    it('should set tasks$', () => {
+      expect(component.tasks$).toEqual(jasmine.any(Observable));
+    });
+
+    it('should call changeDetectorRef.detectChanges for the template to be recheck', () => {
+      expect(detectChangesSpy).toHaveBeenCalled();
+    });
+
+    it('should call updateValueAndValidity', () => {
+      expect(updateValueAndValiditySpy).toHaveBeenCalled();
+    });
+
+    it('should trigger form valueChanges on updateValueAndValidity', () => {
+      component.tasks$?.subscribe();
+      form.updateValueAndValidity();
+      expect(mockData.taskService.getFiltered).toHaveBeenCalledWith({ filterName: 'filterValue' });
+    });
   });
 
-  it('should reload the tasks after task deletion', () => {
-    // given
-    const tasks$ = of([]);
-    taskService.getAll.and.returnValue(tasks$);
+  describe('with filterForm setted', () => {
+    let updateValueAndValiditySpy: jasmine.Spy;
+    beforeEach(() => {
+      updateValueAndValiditySpy = spyOn(mockData.filterForm, 'updateValueAndValidity').and.callThrough();
+      fixture.detectChanges();
+      component.setFilterForm(mockData.filterForm);
+    });
 
-    // when
-    component.deleted();
+    describe('on task create', () => {
+      beforeEach(() => {
+        mockData.taskService.getFiltered.and.returnValue(of([]));
+        component.created();
+      });
 
-    // then
-    expect(component.tasks$).toEqual(tasks$);
-    expect(taskService.getAll).toHaveBeenCalled();
+      it('should call form updateValueAndValidity', () => {
+        expect(updateValueAndValiditySpy).toHaveBeenCalled();
+      });
+
+      it('should trigger filterForm valueChanges', () => {
+        expect(mockData.taskService.getFiltered).toHaveBeenCalled();
+      });
+    });
+
+    describe('on task deletion', () => {
+      beforeEach(() => {
+        mockData.taskService.getFiltered.and.returnValue(of([]));
+        component.deleted();
+      });
+
+      it('should call form updateValueAndValidity', () => {
+        expect(updateValueAndValiditySpy).toHaveBeenCalled();
+      });
+
+      it('should trigger filterForm valueChanges', () => {
+        expect(mockData.taskService.getFiltered).toHaveBeenCalled();
+      });
+    });
   });
 });
